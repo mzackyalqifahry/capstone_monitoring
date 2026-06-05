@@ -274,10 +274,11 @@
     tr:hover td { background: var(--surface2); }
     .td-mono { font-family: 'DM Mono', monospace; font-size: 12px; }
 
-    /* ── REPORT PAGE ── */
+    /* ── PAGES ── */
     .page { display: none; }
     .page.active { display: block; }
 
+    /* ── REPORT ── */
     .report-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -626,9 +627,9 @@ async function fetchTerkini() {
     const d = await r.json();
     if (d.error) { setStatus(false); return; }
     const f = d.fields;
-    const s = parseFloat(f.suhu?.doubleValue || 0);
-    const p = parseFloat(f.ph?.doubleValue   || 0);
-    const t = parseFloat(f.tds?.doubleValue  || 0);
+    const s = parseFloat(f.suhu?.doubleValue || f.suhu?.integerValue || 0);
+    const p = parseFloat(f.ph?.doubleValue   || f.ph?.integerValue   || 0);
+    const t = parseFloat(f.tds?.doubleValue  || f.tds?.integerValue  || 0);
     setStatus(true);
     updateCards(s, p, t);
     pushChart(s, p, t);
@@ -644,12 +645,22 @@ async function fetchRiwayat() {
     if (!d.documents) return;
     const tbody = document.getElementById('tblBody');
     tbody.innerHTML = d.documents.reverse().map(doc => {
-      const f   = doc.fields;
-      const s   = parseFloat(f.suhu?.doubleValue || 0);
-      const p   = parseFloat(f.ph?.doubleValue   || 0);
-      const t   = parseFloat(f.tds?.doubleValue  || 0);
-      const ts  = parseInt(f.timestamp?.stringValue || 0);
-      const tstr = ts > 0 ? new Date(ts).toLocaleTimeString('id-ID') : '-';
+      const f = doc.fields;
+      const s = parseFloat(f.suhu?.doubleValue || f.suhu?.integerValue || 0);
+      const p = parseFloat(f.ph?.doubleValue   || f.ph?.integerValue   || 0);
+      const t = parseFloat(f.tds?.doubleValue  || f.tds?.integerValue  || 0);
+
+      // Timestamp format HHMMSS (contoh: 121154 = 12:11:54)
+      let tstr = '-';
+      const ts = f.timestamp?.integerValue || f.timestamp?.stringValue || '';
+      if (ts) {
+        const s6 = String(ts).padStart(6, '0');
+        const hh = s6.substring(0, 2);
+        const mm = s6.substring(2, 4);
+        const ss = s6.substring(4, 6);
+        tstr = `${hh}:${mm}:${ss}`;
+      }
+
       return `<tr>
         <td class="td-mono">${tstr}</td>
         <td class="td-mono">${s.toFixed(1)}</td>
