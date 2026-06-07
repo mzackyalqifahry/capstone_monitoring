@@ -6,354 +6,148 @@
   <title>Water Quality Monitor — Danau Kaolin</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     :root {
-      --bg:       #EEF4FB;
-      --surface:  #FFFFFF;
-      --surface2: #F5F9FF;
-      --border:   #D6E4F7;
-      --blue1:    #1A6FC4;
-      --blue2:    #2E8BE6;
-      --blue3:    #5AABF8;
-      --blue4:    #C3DCFA;
-      --teal:     #17A8A2;
-      --amber:    #E8923A;
-      --red:      #E05252;
-      --green:    #3DA874;
-      --text1:    #0D1F3C;
-      --text2:    #4A6080;
-      --text3:    #8AAAC8;
-      --shadow:   0 2px 16px rgba(26,111,196,0.10);
-      --shadow-lg:0 8px 32px rgba(26,111,196,0.14);
-      --r:        14px;
+      --bg:#EEF4FB;--surface:#FFFFFF;--surface2:#F5F9FF;--border:#D6E4F7;
+      --blue1:#1A6FC4;--blue2:#2E8BE6;--blue3:#5AABF8;--blue4:#C3DCFA;
+      --teal:#17A8A2;--amber:#E8923A;--text1:#0D1F3C;--text2:#4A6080;--text3:#8AAAC8;
+      --shadow:0 2px 16px rgba(26,111,196,0.10);--shadow-lg:0 8px 32px rgba(26,111,196,0.14);
+      --r:14px;
     }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;display:flex;}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    .sidebar{width:240px;min-height:100vh;background:linear-gradient(175deg,#0D2D5E 0%,#1A4F8A 60%,#1A6FC4 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;box-shadow:4px 0 24px rgba(13,29,62,0.18);}
+    .sidebar-brand{padding:28px 24px 24px;border-bottom:1px solid rgba(255,255,255,0.10);}
+    .brand-icon{width:40px;height:40px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+    .brand-icon svg{width:22px;height:22px;fill:#fff;}
+    .brand-title{font-size:15px;font-weight:600;color:#fff;}
+    .brand-sub{font-size:11px;color:rgba(255,255,255,0.50);margin-top:2px;}
+    .sidebar-profile{padding:18px 24px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.10);}
+    .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue3),var(--teal));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#fff;flex-shrink:0;}
+    .profile-name{font-size:13px;font-weight:600;color:#fff;}
+    .profile-role{font-size:11px;color:rgba(255,255,255,0.50);}
+    .online-dot{width:7px;height:7px;border-radius:50%;background:#4ADE80;box-shadow:0 0 0 2px rgba(74,222,128,0.3);margin-left:auto;flex-shrink:0;}
+    .sidebar-nav{padding:16px 12px;flex:1;}
+    .nav-label{font-size:10px;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.08em;text-transform:uppercase;padding:0 12px;margin-bottom:6px;margin-top:12px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.65);cursor:pointer;transition:all 0.18s;margin-bottom:2px;text-decoration:none;}
+    .nav-item:hover{background:rgba(255,255,255,0.10);color:#fff;}
+    .nav-item.active{background:rgba(255,255,255,0.15);color:#fff;}
+    .nav-item svg{width:17px;height:17px;opacity:0.8;flex-shrink:0;}
+    .nav-item.active svg{opacity:1;}
+    .sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,0.10);}
+    .conn-status{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,0.55);}
+    .conn-dot{width:7px;height:7px;border-radius:50%;background:#E05252;flex-shrink:0;transition:background 0.3s;}
+    .conn-dot.on{background:#4ADE80;box-shadow:0 0 0 2px rgba(74,222,128,0.3);}
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text1);
-      min-height: 100vh;
-      display: flex;
-    }
+    .main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+    .topbar-left h2{font-size:17px;font-weight:600;color:var(--text1);}
+    .topbar-left p{font-size:12px;color:var(--text3);margin-top:1px;}
+    .last-upd{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;}
+    .content{padding:28px 32px;flex:1;}
 
-    /* ── SIDEBAR ── */
-    .sidebar {
-      width: 240px;
-      min-height: 100vh;
-      background: linear-gradient(175deg, #0D2D5E 0%, #1A4F8A 60%, #1A6FC4 100%);
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      z-index: 100;
-      box-shadow: 4px 0 24px rgba(13,29,62,0.18);
-    }
+    .cfg-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:24px;box-shadow:var(--shadow);}
+    .cfg-card h3{font-size:14px;font-weight:600;margin-bottom:4px;}
+    .cfg-card p{font-size:12px;color:var(--text2);margin-bottom:16px;}
+    .cfg-field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+    .cfg-field label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;}
+    .cfg-field input{font-size:13px;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text1);font-family:'DM Mono',monospace;outline:none;transition:border 0.15s;}
+    .cfg-field input:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(46,139,230,0.12);}
+    .btn-connect{padding:9px 20px;font-size:13px;font-weight:600;border-radius:9px;border:none;background:linear-gradient(135deg,var(--blue1),var(--blue2));color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(26,111,196,0.25);transition:all 0.18s;font-family:'DM Sans',sans-serif;}
+    .btn-connect:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,111,196,0.35);}
 
-    .sidebar-brand {
-      padding: 28px 24px 24px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-    }
-    .brand-icon {
-      width: 40px; height: 40px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 12px;
-    }
-    .brand-icon svg { width: 22px; height: 22px; fill: #fff; }
-    .brand-title { font-size: 15px; font-weight: 600; color: #fff; line-height: 1.3; }
-    .brand-sub { font-size: 11px; color: rgba(255,255,255,0.50); margin-top: 2px; letter-spacing: 0.03em; }
+    .loc-banner{background:linear-gradient(135deg,#0D2D5E 0%,#1A6FC4 100%);border-radius:var(--r);padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;}
+    .loc-banner::before{content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.05);}
+    .loc-icon{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .loc-icon svg{width:22px;height:22px;fill:#fff;}
+    .loc-name{font-size:16px;font-weight:600;color:#fff;}
+    .loc-sub{font-size:12px;color:rgba(255,255,255,0.60);margin-top:2px;}
 
-    .sidebar-profile {
-      padding: 18px 24px;
-      display: flex; align-items: center; gap: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-    }
-    .avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--blue3), var(--teal));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: 600; color: #fff;
-      flex-shrink: 0;
-    }
-    .profile-name { font-size: 13px; font-weight: 600; color: #fff; }
-    .profile-role { font-size: 11px; color: rgba(255,255,255,0.50); }
-    .online-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #4ADE80;
-      box-shadow: 0 0 0 2px rgba(74,222,128,0.3);
-      margin-left: auto; flex-shrink: 0;
-    }
+    .metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+    .mc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform 0.18s,box-shadow 0.18s;}
+    .mc:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+    .mc-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0;}
+    .mc-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+    .mc-val{font-size:34px;font-weight:300;color:var(--text1);line-height:1;}
+    .mc-val span{font-size:14px;font-weight:500;color:var(--text3);margin-left:3px;}
+    .badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin-top:10px;}
+    .b-ok{background:#E3F5EC;color:#1C7D4D;}
+    .b-warn{background:#FEF3E2;color:#925A10;}
+    .b-danger{background:#FDECEC;color:#9B2626;}
 
-    .sidebar-nav { padding: 16px 12px; flex: 1; }
-    .nav-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; text-transform: uppercase; padding: 0 12px; margin-bottom: 6px; margin-top: 12px; }
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 9px;
-      font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.65);
-      cursor: pointer; transition: all 0.18s; margin-bottom: 2px;
-      text-decoration: none;
-    }
-    .nav-item:hover { background: rgba(255,255,255,0.10); color: #fff; }
-    .nav-item.active { background: rgba(255,255,255,0.15); color: #fff; }
-    .nav-item svg { width: 17px; height: 17px; opacity: 0.8; flex-shrink: 0; }
-    .nav-item.active svg { opacity: 1; }
+    .charts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);}
+    .chart-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+    .chart-lbl{font-size:12px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px;}
+    .chart-val{font-size:18px;font-weight:600;font-family:'DM Mono',monospace;}
 
-    .sidebar-footer {
-      padding: 16px 24px;
-      border-top: 1px solid rgba(255,255,255,0.10);
-    }
-    .conn-status {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 12px; color: rgba(255,255,255,0.55);
-    }
-    .conn-dot { width: 7px; height: 7px; border-radius: 50%; background: #E05252; flex-shrink: 0; transition: background 0.3s; }
-    .conn-dot.on { background: #4ADE80; box-shadow: 0 0 0 2px rgba(74,222,128,0.3); }
+    .tbl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:24px;box-shadow:var(--shadow);}
+    .tbl-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .tbl-title{font-size:14px;font-weight:600;color:var(--text1);display:flex;align-items:center;gap:7px;}
+    .btn-excel{padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:none;background:linear-gradient(135deg,#1D6F42,#2E9E60);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.18s;display:flex;align-items:center;gap:6px;}
+    .btn-excel:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(29,111,66,0.30);}
+    .btn-clear{padding:8px 14px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+    .btn-clear:hover{background:#FDECEC;color:#9B2626;border-color:#F5BCBC;}
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
+    td{padding:10px 12px;border-bottom:1px solid var(--surface2);color:var(--text1);}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:var(--surface2);}
+    .td-mono{font-family:'DM Mono',monospace;font-size:12px;}
+    .counter-badge{background:var(--blue4);color:var(--blue1);font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;margin-left:8px;}
 
-    /* ── MAIN ── */
-    .main {
-      margin-left: 240px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+    .page{display:none;}
+    .page.active{display:block;}
 
-    /* ── TOPBAR ── */
-    .topbar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 32px;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 50;
-    }
-    .topbar-left h2 { font-size: 17px; font-weight: 600; color: var(--text1); }
-    .topbar-left p { font-size: 12px; color: var(--text3); margin-top: 1px; }
-    .last-upd { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+    .report-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:32px;box-shadow:var(--shadow);max-width:480px;}
+    .report-card h3{font-size:16px;font-weight:600;margin-bottom:6px;}
+    .report-card p{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6;}
+    .wa-btn{display:inline-flex;align-items:center;gap:10px;padding:13px 24px;border-radius:10px;background:#25D366;color:#fff;font-size:14px;font-weight:600;text-decoration:none;box-shadow:0 2px 12px rgba(37,211,102,0.30);transition:all 0.18s;}
+    .wa-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(37,211,102,0.40);}
+    .wa-btn svg{width:22px;height:22px;fill:#fff;}
+    .info-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);}
+    .info-row:last-child{border-bottom:none;}
+    .info-lbl{font-size:12px;color:var(--text3);width:100px;flex-shrink:0;}
+    .info-val{font-size:13px;font-weight:500;color:var(--text1);}
+    .footer{text-align:center;font-size:11px;color:var(--text3);padding-bottom:24px;font-family:'DM Mono',monospace;}
 
-    /* ── CONTENT ── */
-    .content { padding: 28px 32px; flex: 1; }
-
-    /* ── CONFIG PANEL ── */
-    .cfg-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow);
-    }
-    .cfg-card h3 { font-size: 14px; font-weight: 600; color: var(--text1); margin-bottom: 4px; }
-    .cfg-card p { font-size: 12px; color: var(--text2); margin-bottom: 16px; }
-    .cfg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-    .cfg-field { display: flex; flex-direction: column; gap: 5px; grid-column: span 2; }
-    .cfg-field label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
-    .cfg-field input {
-      font-size: 13px; padding: 9px 12px;
-      border-radius: 8px; border: 1px solid var(--border);
-      background: var(--surface2); color: var(--text1);
-      font-family: 'DM Mono', monospace;
-      outline: none; transition: border 0.15s;
-    }
-    .cfg-field input:focus { border-color: var(--blue2); box-shadow: 0 0 0 3px rgba(46,139,230,0.12); }
-    .btn-connect {
-      padding: 9px 20px; font-size: 13px; font-weight: 600;
-      border-radius: 9px; border: none;
-      background: linear-gradient(135deg, var(--blue1), var(--blue2));
-      color: #fff; cursor: pointer;
-      box-shadow: 0 2px 8px rgba(26,111,196,0.25);
-      transition: all 0.18s; font-family: 'DM Sans', sans-serif;
-    }
-    .btn-connect:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,111,196,0.35); }
-
-    /* ── LOCATION BANNER ── */
-    .loc-banner {
-      background: linear-gradient(135deg, #0D2D5E 0%, #1A6FC4 100%);
-      border-radius: var(--r);
-      padding: 20px 24px;
-      margin-bottom: 20px;
-      display: flex; align-items: center; gap: 16px;
-      box-shadow: var(--shadow-lg);
-      position: relative; overflow: hidden;
-    }
-    .loc-banner::before {
-      content: '';
-      position: absolute; right: -30px; top: -30px;
-      width: 160px; height: 160px; border-radius: 50%;
-      background: rgba(255,255,255,0.05);
-    }
-    .loc-banner::after {
-      content: '';
-      position: absolute; right: 40px; bottom: -40px;
-      width: 100px; height: 100px; border-radius: 50%;
-      background: rgba(255,255,255,0.04);
-    }
-    .loc-icon {
-      width: 44px; height: 44px; border-radius: 12px;
-      background: rgba(255,255,255,0.15);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .loc-icon svg { width: 22px; height: 22px; fill: #fff; }
-    .loc-name { font-size: 16px; font-weight: 600; color: #fff; }
-    .loc-sub { font-size: 12px; color: rgba(255,255,255,0.60); margin-top: 2px; }
-
-    /* ── METRIC CARDS ── */
-    .metric-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
-    .mc {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 20px;
-      box-shadow: var(--shadow);
-      position: relative; overflow: hidden;
-      transition: transform 0.18s, box-shadow 0.18s;
-    }
-    .mc:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-    .mc-accent {
-      position: absolute; top: 0; left: 0; right: 0;
-      height: 3px; border-radius: var(--r) var(--r) 0 0;
-    }
-    .mc-lbl { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-    .mc-lbl svg { width: 14px; height: 14px; }
-    .mc-val { font-size: 34px; font-weight: 300; color: var(--text1); line-height: 1; }
-    .mc-val span { font-size: 14px; font-weight: 500; color: var(--text3); margin-left: 3px; }
-    .badge {
-      display: inline-flex; align-items: center;
-      font-size: 11px; font-weight: 600; padding: 4px 10px;
-      border-radius: 20px; margin-top: 10px; letter-spacing: 0.02em;
-    }
-    .b-ok     { background: #E3F5EC; color: #1C7D4D; }
-    .b-warn   { background: #FEF3E2; color: #925A10; }
-    .b-danger { background: #FDECEC; color: #9B2626; }
-
-    /* ── CHARTS ── */
-    .charts-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
-    .chart-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 20px;
-      box-shadow: var(--shadow);
-    }
-    .chart-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .chart-lbl { font-size: 12px; font-weight: 600; color: var(--text2); display: flex; align-items: center; gap: 6px; }
-    .chart-lbl svg { width: 14px; height: 14px; }
-    .chart-val { font-size: 18px; font-weight: 600; font-family: 'DM Mono', monospace; }
-
-    /* ── TABLE ── */
-    .tbl-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 20px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow);
-    }
-    .tbl-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .tbl-title { font-size: 14px; font-weight: 600; color: var(--text1); display: flex; align-items: center; gap: 7px; }
-    .tbl-title svg { width: 16px; height: 16px; }
-    .btn-refresh {
-      padding: 7px 14px; font-size: 12px; font-weight: 500;
-      border-radius: 8px; border: 1px solid var(--border);
-      background: var(--surface2); color: var(--text2);
-      cursor: pointer; font-family: 'DM Sans', sans-serif;
-      transition: all 0.15s;
-    }
-    .btn-refresh:hover { background: var(--blue4); color: var(--blue1); border-color: var(--blue3); }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th {
-      text-align: left; padding: 9px 12px;
-      font-size: 11px; font-weight: 600; color: var(--text3);
-      text-transform: uppercase; letter-spacing: 0.05em;
-      border-bottom: 1px solid var(--border);
-    }
-    td { padding: 10px 12px; border-bottom: 1px solid var(--surface2); color: var(--text1); }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--surface2); }
-    .td-mono { font-family: 'DM Mono', monospace; font-size: 12px; }
-
-    /* ── PAGES ── */
-    .page { display: none; }
-    .page.active { display: block; }
-
-    /* ── REPORT ── */
-    .report-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 32px;
-      box-shadow: var(--shadow);
-      max-width: 480px;
-    }
-    .report-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-    .report-card p { font-size: 13px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
-    .wa-btn {
-      display: inline-flex; align-items: center; gap: 10px;
-      padding: 13px 24px; border-radius: 10px;
-      background: #25D366; color: #fff;
-      font-size: 14px; font-weight: 600;
-      text-decoration: none;
-      box-shadow: 0 2px 12px rgba(37,211,102,0.30);
-      transition: all 0.18s;
-    }
-    .wa-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,211,102,0.40); }
-    .wa-btn svg { width: 22px; height: 22px; fill: #fff; }
-    .info-row { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-    .info-row:last-child { border-bottom: none; }
-    .info-lbl { font-size: 12px; color: var(--text3); width: 100px; flex-shrink: 0; }
-    .info-val { font-size: 13px; font-weight: 500; color: var(--text1); }
-
-    .footer { text-align: center; font-size: 11px; color: var(--text3); padding-bottom: 24px; font-family: 'DM Mono', monospace; }
-
-    @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .main { margin-left: 0; }
-      .metric-grid, .charts-grid { grid-template-columns: 1fr; }
-      .content { padding: 16px; }
-      .topbar { padding: 14px 16px; }
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .main{margin-left:0;}
+      .metric-grid,.charts-grid{grid-template-columns:1fr;}
+      .content{padding:16px;}
+      .topbar{padding:14px 16px;}
     }
   </style>
 </head>
 <body>
 
-<!-- ── SIDEBAR ── -->
 <aside class="sidebar">
   <div class="sidebar-brand">
-    <div class="brand-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/><path d="M12 2a10 10 0 000 20A10 10 0 0012 2zm0 18a8 8 0 110-16 8 8 0 010 16z"/></svg>
-    </div>
+    <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg></div>
     <div class="brand-title">Water Quality</div>
     <div class="brand-sub">Monitoring System</div>
   </div>
-
   <div class="sidebar-profile">
     <div class="avatar">Z</div>
-    <div>
-      <div class="profile-name">Zacky</div>
-      <div class="profile-role">Administrator</div>
-    </div>
+    <div><div class="profile-name">Zacky</div><div class="profile-role">Administrator</div></div>
     <div class="online-dot"></div>
   </div>
-
   <nav class="sidebar-nav">
     <div class="nav-label">Main</div>
     <a class="nav-item active" onclick="showPage('dashboard')">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-      Dashboard
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard
     </a>
     <a class="nav-item" onclick="showPage('history')">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-      History
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>History
     </a>
     <div class="nav-label">Lainnya</div>
     <a class="nav-item" onclick="showPage('report')">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-      Report
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Report
     </a>
   </nav>
-
   <div class="sidebar-footer">
     <div class="conn-status">
       <div class="conn-dot" id="connDot"></div>
@@ -362,47 +156,35 @@
   </div>
 </aside>
 
-<!-- ── MAIN ── -->
 <div class="main">
-
   <div class="topbar">
     <div class="topbar-left">
       <h2 id="pageTitle">Dashboard</h2>
       <p id="pageSubtitle">Monitoring real-time kualitas air</p>
     </div>
-    <div class="topbar-right">
-      <span class="last-upd" id="lastUpd">—</span>
-    </div>
+    <span class="last-upd" id="lastUpd">—</span>
   </div>
 
   <div class="content">
 
-    <!-- ══ PAGE: DASHBOARD ══ -->
+    <!-- DASHBOARD -->
     <div class="page active" id="pgDashboard">
 
       <div class="cfg-card" id="cfgPanel">
-        <h3>Konfigurasi Firebase Firestore</h3>
-        <p>Masukkan API Key dan Project ID dari Firebase project kamu untuk mulai monitoring.</p>
-        <div class="cfg-grid">
-          <div class="cfg-field">
-            <label>API Key</label>
-            <input id="fApiKey" type="text" placeholder="AIzaSy..." />
-          </div>
-          <div class="cfg-field">
-            <label>Project ID</label>
-            <input id="fProjectId" type="text" placeholder="capstone-monitoring-xxxxx" />
-          </div>
+        <h3>Konfigurasi WebSocket ESP32</h3>
+        <p>Masukkan IP Address ESP32 yang tampil di LCD atau Serial Monitor.</p>
+        <div class="cfg-field">
+          <label>IP Address ESP32</label>
+          <input id="espIP" type="text" placeholder="192.168.1.100" />
         </div>
-        <button class="btn-connect" onclick="connectFS()">
+        <button class="btn-connect" onclick="connectWS()">
           <svg style="width:14px;height:14px;fill:#fff;vertical-align:middle;margin-right:6px;" viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
-          Hubungkan Firestore
+          Hubungkan ESP32
         </button>
       </div>
 
       <div class="loc-banner">
-        <div class="loc-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        </div>
+        <div class="loc-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
         <div>
           <div class="loc-name">Danau Kaolin, Bangka Tengah</div>
           <div class="loc-sub">Stasiun Pemantauan Kualitas Air Aktif</div>
@@ -412,28 +194,19 @@
       <div class="metric-grid">
         <div class="mc">
           <div class="mc-accent" style="background:linear-gradient(90deg,#1A6FC4,#5AABF8);"></div>
-          <div class="mc-lbl">
-            <svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--blue2)"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c2.5 0 4-2.5 7.5-2.5S19 20 22 20v-2c-2.5 0-4-2.5-7.5-2.5-1.98 0-3.22.5-4.3.87.42-1.12 1.29-2.85 3.3-4.22L17 14V8z"/></svg>
-            Suhu Air
-          </div>
+          <div class="mc-lbl"><svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--blue2)"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c2.5 0 4-2.5 7.5-2.5S19 20 22 20v-2c-2.5 0-4-2.5-7.5-2.5-1.98 0-3.22.5-4.3.87.42-1.12 1.29-2.85 3.3-4.22L17 14V8z"/></svg>Suhu Air</div>
           <div class="mc-val" id="vSuhu">--<span>°C</span></div>
           <div><span class="badge b-ok" id="bSuhu">—</span></div>
         </div>
         <div class="mc">
           <div class="mc-accent" style="background:linear-gradient(90deg,#17A8A2,#4ECDC4);"></div>
-          <div class="mc-lbl">
-            <svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--teal)"><path d="M19.49 12.05L12 4.56l-7.49 7.49A8.485 8.485 0 004 17.5C4 21.09 7.13 24 11 24h2c3.87 0 7-2.91 7-6.5 0-2.03-.9-3.84-2.51-5.45zM12 22H11c-2.76 0-5-2.02-5-4.5 0-1.61.94-3.01 2.34-4.05L12 9.9l3.66 3.55C17.06 14.49 18 15.89 18 17.5c0 2.48-2.24 4.5-5 4.5h-1z"/></svg>
-            Nilai pH
-          </div>
+          <div class="mc-lbl"><svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--teal)"><path d="M19.49 12.05L12 4.56l-7.49 7.49A8.485 8.485 0 004 17.5C4 21.09 7.13 24 11 24h2c3.87 0 7-2.91 7-6.5 0-2.03-.9-3.84-2.51-5.45zM12 22H11c-2.76 0-5-2.02-5-4.5 0-1.61.94-3.01 2.34-4.05L12 9.9l3.66 3.55C17.06 14.49 18 15.89 18 17.5c0 2.48-2.24 4.5-5 4.5h-1z"/></svg>Nilai pH</div>
           <div class="mc-val" id="vPH">--</div>
           <div><span class="badge b-ok" id="bPH">—</span></div>
         </div>
         <div class="mc">
           <div class="mc-accent" style="background:linear-gradient(90deg,#E8923A,#F5C07A);"></div>
-          <div class="mc-lbl">
-            <svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--amber)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-            TDS
-          </div>
+          <div class="mc-lbl"><svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--amber)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>TDS</div>
           <div class="mc-val" id="vTDS">--<span>ppm</span></div>
           <div><span class="badge b-ok" id="bTDS">—</span></div>
         </div>
@@ -442,91 +215,70 @@
       <div class="charts-grid">
         <div class="chart-card">
           <div class="chart-hdr">
-            <div class="chart-lbl" style="color:var(--blue2)">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c2.5 0 4-2.5 7.5-2.5S19 20 22 20v-2c-2.5 0-4-2.5-7.5-2.5-1.98 0-3.22.5-4.3.87.42-1.12 1.29-2.85 3.3-4.22L17 14V8z"/></svg>
-              Suhu (°C)
-            </div>
+            <div class="chart-lbl" style="color:var(--blue2)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c2.5 0 4-2.5 7.5-2.5S19 20 22 20v-2c-2.5 0-4-2.5-7.5-2.5-1.98 0-3.22.5-4.3.87.42-1.12 1.29-2.85 3.3-4.22L17 14V8z"/></svg>Suhu (°C)</div>
             <div class="chart-val" id="cvSuhu" style="color:var(--blue2)">--</div>
           </div>
-          <div style="position:relative;height:130px;">
-            <canvas id="cSuhu"></canvas>
-          </div>
+          <div style="position:relative;height:130px;"><canvas id="cSuhu"></canvas></div>
         </div>
         <div class="chart-card">
           <div class="chart-hdr">
-            <div class="chart-lbl" style="color:var(--teal)">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.49 12.05L12 4.56l-7.49 7.49A8.485 8.485 0 004 17.5C4 21.09 7.13 24 11 24h2c3.87 0 7-2.91 7-6.5 0-2.03-.9-3.84-2.51-5.45z"/></svg>
-              pH
-            </div>
+            <div class="chart-lbl" style="color:var(--teal)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.49 12.05L12 4.56l-7.49 7.49A8.485 8.485 0 004 17.5C4 21.09 7.13 24 11 24h2c3.87 0 7-2.91 7-6.5 0-2.03-.9-3.84-2.51-5.45z"/></svg>pH</div>
             <div class="chart-val" id="cvPH" style="color:var(--teal)">--</div>
           </div>
-          <div style="position:relative;height:130px;">
-            <canvas id="cPH"></canvas>
-          </div>
+          <div style="position:relative;height:130px;"><canvas id="cPH"></canvas></div>
         </div>
         <div class="chart-card">
           <div class="chart-hdr">
-            <div class="chart-lbl" style="color:var(--amber)">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-              TDS (ppm)
-            </div>
+            <div class="chart-lbl" style="color:var(--amber)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>TDS (ppm)</div>
             <div class="chart-val" id="cvTDS" style="color:var(--amber)">--</div>
           </div>
-          <div style="position:relative;height:130px;">
-            <canvas id="cTDS"></canvas>
-          </div>
+          <div style="position:relative;height:130px;"><canvas id="cTDS"></canvas></div>
         </div>
       </div>
 
-      <div class="footer">Auto-refresh setiap 1 detik &nbsp;·&nbsp; Danau Kaolin Monitoring System</div>
+      <div class="footer">Real-time via WebSocket &nbsp;·&nbsp; Danau Kaolin Monitoring System</div>
     </div>
 
-    <!-- ══ PAGE: HISTORY ══ -->
+    <!-- HISTORY -->
     <div class="page" id="pgHistory">
       <div class="tbl-card">
         <div class="tbl-hdr">
           <span class="tbl-title">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-            Riwayat Data (20 Terakhir)
+            <svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--blue2)"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+            Riwayat Data
+            <span class="counter-badge" id="dataCount">0 data</span>
           </span>
-          <button class="btn-refresh" onclick="fetchRiwayat()">↻ Refresh</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-clear" onclick="clearHistory()">🗑 Hapus</button>
+            <button class="btn-excel" onclick="exportExcel()">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 16v-2h2v2H8zm0-4V10h2v2H8zm4 4v-2h4v2h-4zm0-4V10h4v2h-4z"/></svg>
+              Simpan Excel
+            </button>
+          </div>
         </div>
         <table>
           <thead>
             <tr>
-              <th>Waktu</th>
-              <th>Suhu (°C)</th>
-              <th>pH</th>
-              <th>TDS (ppm)</th>
-              <th>Status</th>
+              <th>No</th><th>Waktu</th><th>Suhu (°C)</th><th>pH</th><th>TDS (ppm)</th><th>Status</th>
             </tr>
           </thead>
           <tbody id="tblBody">
-            <tr><td colspan="5" style="text-align:center;color:var(--text3);padding:28px;">Belum ada data — hubungkan Firestore dahulu</td></tr>
+            <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px;">Belum ada data — hubungkan ESP32 dahulu</td></tr>
           </tbody>
         </table>
       </div>
       <div class="footer">Danau Kaolin Monitoring System</div>
     </div>
 
-    <!-- ══ PAGE: REPORT ══ -->
+    <!-- REPORT -->
     <div class="page" id="pgReport">
       <div class="report-card">
         <h3>Hubungi Administrator</h3>
         <p>Laporkan masalah atau kirim pertanyaan terkait kualitas air Danau Kaolin melalui WhatsApp.</p>
         <div style="margin-bottom:24px;">
-          <div class="info-row">
-            <div class="info-lbl">Nama</div>
-            <div class="info-val">Zacky</div>
-          </div>
-          <div class="info-row">
-            <div class="info-lbl">Lokasi</div>
-            <div class="info-val">Danau Kaolin, Bangka Tengah</div>
-          </div>
-          <div class="info-row">
-            <div class="info-lbl">WhatsApp</div>
-            <div class="info-val" style="font-family:'DM Mono',monospace;">081574154304</div>
-          </div>
+          <div class="info-row"><div class="info-lbl">Nama</div><div class="info-val">Zacky</div></div>
+          <div class="info-row"><div class="info-lbl">Lokasi</div><div class="info-val">Danau Kaolin, Bangka Tengah</div></div>
+          <div class="info-row"><div class="info-lbl">WhatsApp</div><div class="info-val" style="font-family:'DM Mono',monospace;">081574154304</div></div>
         </div>
         <a class="wa-btn" href="https://wa.me/6281574154304?text=Halo%20Zacky%2C%20saya%20ingin%20melaporkan%20kondisi%20kualitas%20air%20Danau%20Kaolin." target="_blank">
           <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -540,25 +292,17 @@
 </div>
 
 <script>
-const MAX = 20;
+// ── CHART SETUP ──
+const MAX_CHART = 30;
 const hLabel = [], hSuhu = [], hPH = [], hTDS = [];
-let charts = {}, fsInterval = null, apiKey = '', projectId = '';
+let charts = {}, ws = null;
+
+// Riwayat data (tidak terbatas, untuk export Excel)
+let riwayat = [];
 
 const mkChart = (id, color, data, yMin, yMax) => new Chart(document.getElementById(id), {
   type: 'line',
-  data: {
-    labels: hLabel,
-    datasets: [{
-      data,
-      borderColor: color,
-      borderWidth: 2,
-      pointRadius: 2.5,
-      pointBackgroundColor: color,
-      fill: true,
-      backgroundColor: color + '18',
-      tension: 0.4
-    }]
-  },
+  data: { labels: hLabel, datasets: [{ data, borderColor: color, borderWidth: 2, pointRadius: 2.5, pointBackgroundColor: color, fill: true, backgroundColor: color + '18', tension: 0.4 }] },
   options: {
     responsive: true, maintainAspectRatio: false,
     plugins: { legend: { display: false } },
@@ -570,16 +314,18 @@ const mkChart = (id, color, data, yMin, yMax) => new Chart(document.getElementBy
 });
 
 function initCharts() {
-  charts.suhu = mkChart('cSuhu', '#2E8BE6', hSuhu, 0,  45);
-  charts.ph   = mkChart('cPH',   '#17A8A2', hPH,   0,  14);
+  charts.suhu = mkChart('cSuhu', '#2E8BE6', hSuhu, 0, 45);
+  charts.ph   = mkChart('cPH',   '#17A8A2', hPH,   0, 14);
   charts.tds  = mkChart('cTDS',  '#E8923A', hTDS,  0, 1000);
 }
 
-function setStatus(on) {
+// ── STATUS ──
+function setStatus(on, msg) {
   document.getElementById('connDot').className = 'conn-dot' + (on ? ' on' : '');
-  document.getElementById('connLbl').textContent = on ? 'Terhubung' : 'Tidak terhubung';
+  document.getElementById('connLbl').textContent = msg || (on ? 'Terhubung' : 'Terputus');
 }
 
+// ── UPDATE CARDS ──
 function updateCards(s, p, t) {
   document.getElementById('vSuhu').innerHTML = s.toFixed(1) + '<span>°C</span>';
   document.getElementById('vPH').innerHTML   = p.toFixed(2);
@@ -603,10 +349,9 @@ function updateCards(s, p, t) {
   else              { bt.textContent = '🔴 Sangat Buruk'; bt.className = 'badge b-danger'; }
 }
 
-function pushChart(s, p, t) {
-  const lbl = new Date().toLocaleTimeString('id-ID');
-  if (hLabel.length >= MAX) { hLabel.shift(); hSuhu.shift(); hPH.shift(); hTDS.shift(); }
-  hLabel.push(lbl);
+function pushChart(s, p, t, waktu) {
+  if (hLabel.length >= MAX_CHART) { hLabel.shift(); hSuhu.shift(); hPH.shift(); hTDS.shift(); }
+  hLabel.push(waktu);
   hSuhu.push(parseFloat(s.toFixed(2)));
   hPH.push(parseFloat(p.toFixed(2)));
   hTDS.push(parseFloat(t.toFixed(1)));
@@ -614,83 +359,125 @@ function pushChart(s, p, t) {
 }
 
 function statusAir(tds) {
+  if (tds < 300) return 'Baik';
+  if (tds < 600) return 'Cukup';
+  if (tds < 900) return 'Buruk';
+  return 'Sangat Buruk';
+}
+
+function statusBadge(tds) {
   if (tds < 300) return '<span class="badge b-ok">Baik</span>';
   if (tds < 600) return '<span class="badge b-warn">Cukup</span>';
   if (tds < 900) return '<span class="badge b-danger">Buruk</span>';
   return '<span class="badge b-danger">Sangat Buruk</span>';
 }
 
-async function fetchTerkini() {
-  try {
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/terkini/sensor?key=${apiKey}`;
-    const r = await fetch(url);
-    const d = await r.json();
-    if (d.error) { setStatus(false); return; }
-    const f = d.fields;
-    const s = parseFloat(f.suhu?.doubleValue || f.suhu?.integerValue || 0);
-    const p = parseFloat(f.ph?.doubleValue   || f.ph?.integerValue   || 0);
-    const t = parseFloat(f.tds?.doubleValue  || f.tds?.integerValue  || 0);
-    setStatus(true);
-    updateCards(s, p, t);
-    pushChart(s, p, t);
-    document.getElementById('lastUpd').textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
-  } catch(e) { setStatus(false); }
+// ── RIWAYAT ──
+function addRiwayat(s, p, t, waktu) {
+  riwayat.push({ no: riwayat.length + 1, waktu, suhu: s, ph: p, tds: t, status: statusAir(t) });
+  renderTable();
 }
 
-async function fetchRiwayat() {
-  try {
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/riwayat?key=${apiKey}&pageSize=20`;
-    const r = await fetch(url);
-    const d = await r.json();
-    if (!d.documents) return;
-    const tbody = document.getElementById('tblBody');
-    tbody.innerHTML = d.documents.reverse().map(doc => {
-      const f = doc.fields;
-      const s = parseFloat(f.suhu?.doubleValue || f.suhu?.integerValue || 0);
-      const p = parseFloat(f.ph?.doubleValue   || f.ph?.integerValue   || 0);
-      const t = parseFloat(f.tds?.doubleValue  || f.tds?.integerValue  || 0);
-
-      // Timestamp format HHMMSS (contoh: 121154 = 12:11:54)
-      let tstr = '-';
-      const ts = f.timestamp?.integerValue || f.timestamp?.stringValue || '';
-      if (ts) {
-        const s6 = String(ts).padStart(6, '0');
-        const hh = s6.substring(0, 2);
-        const mm = s6.substring(2, 4);
-        const ss = s6.substring(4, 6);
-        tstr = `${hh}:${mm}:${ss}`;
-      }
-
-      return `<tr>
-        <td class="td-mono">${tstr}</td>
-        <td class="td-mono">${s.toFixed(1)}</td>
-        <td class="td-mono">${p.toFixed(2)}</td>
-        <td class="td-mono">${t.toFixed(1)}</td>
-        <td>${statusAir(t)}</td>
-      </tr>`;
-    }).join('');
-  } catch(e) {}
+function renderTable() {
+  const tbody = document.getElementById('tblBody');
+  document.getElementById('dataCount').textContent = riwayat.length + ' data';
+  if (riwayat.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px;">Belum ada data</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...riwayat].reverse().map(r => `
+    <tr>
+      <td class="td-mono">${r.no}</td>
+      <td class="td-mono">${r.waktu}</td>
+      <td class="td-mono">${r.suhu.toFixed(1)}</td>
+      <td class="td-mono">${r.ph.toFixed(2)}</td>
+      <td class="td-mono">${r.tds.toFixed(1)}</td>
+      <td>${statusBadge(r.tds)}</td>
+    </tr>`).join('');
 }
 
-function connectFS() {
-  apiKey    = document.getElementById('fApiKey').value.trim();
-  projectId = document.getElementById('fProjectId').value.trim();
-  if (!apiKey || !projectId) { alert('Isi API Key dan Project ID dulu!'); return; }
-  if (fsInterval) clearInterval(fsInterval);
-  document.getElementById('cfgPanel').style.display = 'none';
-  fetchTerkini();
-  fetchRiwayat();
-  // ── AUTO REFRESH 1 DETIK ──
-  fsInterval = setInterval(() => { fetchTerkini(); fetchRiwayat(); }, 1000);
+function clearHistory() {
+  if (riwayat.length === 0) return;
+  if (confirm('Hapus semua riwayat data?')) {
+    riwayat = [];
+    renderTable();
+  }
 }
 
+// ── EXPORT EXCEL ──
+function exportExcel() {
+  if (riwayat.length === 0) { alert('Belum ada data untuk diekspor!'); return; }
+
+  const wsData = [
+    ['No', 'Waktu', 'Suhu (°C)', 'pH', 'TDS (ppm)', 'Status Air'],
+    ...riwayat.map(r => [r.no, r.waktu, r.suhu.toFixed(1), r.ph.toFixed(2), r.tds.toFixed(1), r.status])
+  ];
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Lebar kolom
+  ws['!cols'] = [{ wch: 5 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 15 }];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Data Kualitas Air');
+
+  const now = new Date();
+  const filename = `KualitasAir_DanauKaolin_${now.toLocaleDateString('id-ID').replace(/\//g,'-')}.xlsx`;
+  XLSX.writeFile(wb, filename);
+}
+
+// ── WEBSOCKET ──
+function connectWS() {
+  const ip = document.getElementById('espIP').value.trim();
+  if (!ip) { alert('Masukkan IP Address ESP32!'); return; }
+
+  if (ws) ws.close();
+
+  setStatus(false, 'Menghubungkan...');
+  ws = new WebSocket(`ws://${ip}:81`);
+
+  ws.onopen = () => {
+    setStatus(true, 'Terhubung ke ESP32');
+    document.getElementById('cfgPanel').style.display = 'none';
+    console.log('WebSocket terhubung');
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const d = JSON.parse(event.data);
+      const s = parseFloat(d.suhu);
+      const p = parseFloat(d.ph);
+      const t = parseFloat(d.tds);
+      const waktu = d.waktu || new Date().toLocaleTimeString('id-ID');
+
+      updateCards(s, p, t);
+      pushChart(s, p, t, waktu);
+      addRiwayat(s, p, t, waktu);
+      document.getElementById('lastUpd').textContent = 'Update: ' + waktu;
+    } catch(e) {
+      console.error('Parse error:', e);
+    }
+  };
+
+  ws.onerror = () => setStatus(false, 'Error koneksi');
+
+  ws.onclose = () => {
+    setStatus(false, 'Terputus — coba reconnect...');
+    // Auto reconnect setelah 3 detik
+    setTimeout(() => {
+      if (document.getElementById('espIP').value) connectWS();
+    }, 3000);
+  };
+}
+
+// ── NAVIGATION ──
 function showPage(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const pages = { dashboard: 'pgDashboard', history: 'pgHistory', report: 'pgReport' };
   const titles = {
     dashboard: ['Dashboard', 'Monitoring real-time kualitas air'],
-    history:   ['History',   'Riwayat data 20 terakhir'],
+    history:   ['History',   'Riwayat data pengambilan'],
     report:    ['Report',    'Hubungi administrator']
   };
   document.getElementById(pages[page]).classList.add('active');
